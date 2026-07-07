@@ -181,15 +181,57 @@ textarea { min-height: 74px; resize: vertical; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.library-list { display: grid; gap: 12px; }
-.library-item {
-  border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 18px;
-  display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  background: var(--bg-alt); transition: transform .2s ease, box-shadow .2s ease;
+/* Autofill preset chips (AI Blog Generator form) */
+.preset-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.preset-chip {
+  border: 1px solid var(--line-strong); background: var(--bg-alt); color: var(--ink-soft);
+  border-radius: 999px; padding: 8px 15px; font-weight: 700; font-size: 12.5px; cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
 }
-.library-item.is-new { background: linear-gradient(120deg, rgba(19,107,238,.09), rgba(169,201,248,.20)); border-color: rgba(19,107,238,.3); }
-.library-item__title { font-weight: 700; color: var(--navy); }
-.library-item__meta { font-size: 12px; color: var(--ink-soft); }
+.preset-chip:hover { border-color: var(--blue); color: var(--navy); }
+.preset-chip.is-active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+/*
+  Blog Library. Real-post cards mirror davonex.com's own .post-card layout
+  (image, h3 link, excerpt, post-meta, read-link), built from its live CSS,
+  populated with the real, live, public post list copied into REAL_DAVONEX_POSTS
+  in demo-data.js (titles/excerpts/dates/read-times verbatim). No image is
+  hotlinked from davonex.com anywhere (that would be a live third-party request
+  on every page load); each card uses a labeled placeholder block instead.
+*/
+.library-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 860px) { .library-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .library-grid { grid-template-columns: 1fr; } }
+
+.post-card {
+  display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 18px 16px; box-shadow: var(--shadow-sm); position: relative;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s, border-color .28s;
+}
+.post-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: rgba(19,107,238,.3); }
+.post-card__img {
+  width: 100%; aspect-ratio: 16/9; border-radius: 10px; border: 1px solid var(--line);
+  background: linear-gradient(135deg, var(--navy), var(--blue-deep)); display: grid; place-items: center;
+}
+.post-card__img span { color: rgba(255,255,255,.8); font-family: var(--mono); font-size: 11.5px; letter-spacing: .05em; }
+.post-card h3 { margin: 14px 0 0; font-size: .98rem; line-height: 1.3; color: var(--navy); }
+.post-card h3 a { color: var(--navy); transition: color .2s; }
+.post-card h3 a:hover { color: var(--blue); }
+.post-card .excerpt { margin-top: 9px; font-size: .88rem; color: var(--ink-soft); flex: 1; }
+.post-card .post-meta {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+  display: flex; align-items: center; gap: 8px;
+}
+.post-card .post-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-soft); opacity: .5; }
+.post-card .read-link { margin-top: 11px; font-weight: 700; font-size: 12.5px; color: var(--blue); display: inline-flex; align-items: center; gap: 6px; }
+.post-card .read-link .arr { transition: transform .22s cubic-bezier(.2,.8,.2,1); }
+.post-card .read-link:hover .arr { transform: translateX(3px); }
+.post-card--demo { border: 1.5px solid var(--blue); box-shadow: var(--shadow-md); }
+.demo-ribbon {
+  display: inline-block; margin-top: 11px; font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: .04em; color: #fff; background: var(--blue); padding: 4px 9px; border-radius: 999px;
+}
 
 .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
 .plan {

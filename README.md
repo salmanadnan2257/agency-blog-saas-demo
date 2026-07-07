@@ -23,10 +23,18 @@ library) — nothing is computed or called over a network anywhere.
 
 ## Features
 
-- AI Blog Generator form with a scripted credit-deduction and generation
-  sequence, matching the real product's flow and copy.
-- Blog Library with an "Export PDF" action per post (scripted, no real file
-  is produced).
+- **AI Blog Generator with real autofill examples.** Four chips above the form
+  autofill the Topic/Description/Keywords fields with real davonex.com post
+  topics and excerpts (an actual configured client of the real production
+  pipeline), copied verbatim, then run the same scripted credit-deduction and
+  generation sequence as before.
+- **Blog Library mirrors davonex.com/blog.** By default it shows all 15 real,
+  live posts from that actual client (titles, excerpts, dates, and read times
+  copied verbatim, no davonex.com image hotlinked, each linking to the real
+  URL). Generating a post adds exactly one fabricated demo card to the top of
+  that list with a live "removes in mm:ss" countdown, replaced if you generate
+  again, and automatically removed after 15 minutes either way. "Export PDF"
+  still works on that demo card while it's present.
 - Subscription Packages using the real, already-published, non-client-specific
   tier data (Basic $9.99/mo for 500 credits, Pro $24.99/mo for 1,500, Enterprise
   $79.99/mo for 5,000) and a redemption code field.
@@ -44,9 +52,12 @@ library) — nothing is computed or called over a network anywhere.
 ## Architecture
 
 Plain HTML, CSS, and vanilla JavaScript. No build step, no framework, no
-backend, no network calls. `demo-data.js` holds the fabricated tour data;
-`app.js` drives tab switching and the scripted generator/export sequences;
-`styles.css` uses davonex.com's public color, font, radius, and shadow
+backend, no network calls at runtime. `demo-data.js` holds `GENERATOR_PRESETS`
+(the autofill chip data, sourced from real davonex.com topics),
+`REAL_DAVONEX_POSTS` (a static snapshot of the real post list), and the rest of
+the fabricated tour data; `app.js` drives tab switching, preset autofill, the
+scripted generator/export sequence, and the Blog Library's demo-card
+countdown/expiry logic; `styles.css` uses davonex.com's public color, font, radius, and shadow
 values and component patterns (copied from its own live CSS, since that's
 just visual design language every visitor's browser already renders) so the
 demo reads as a polished, deliberate product tour rather than a generic
@@ -59,8 +70,10 @@ file server.
 
 ## Usage
 
-Click through the four tabs. Submit the generator form to see the scripted
-generation sequence; the new post appears highlighted in the Blog Library tab.
+Click through the four tabs. Optionally click an autofill chip on the
+generator, then submit the form to see the scripted generation sequence; the
+new post appears at the top of the Blog Library tab with a live countdown,
+alongside all 15 real davonex.com posts.
 
 ## Challenges
 
