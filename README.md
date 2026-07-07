@@ -1,4 +1,4 @@
-# Agency Blog SaaS — Demo
+# Agency Blog SaaS: Demo
 
 A fabricated, interactive product tour of the `agency-blog-saas` project's
 key features, built so the product can be seen working without exposing the
@@ -20,7 +20,7 @@ A static page with four main tabs mirroring the real product's core screens:
 the AI Blog Generator, the Blog Library, Subscription Packages, and Client
 Updates, plus an in-page article reader opened from any Blog Library card.
 Submitting the generator form runs a scripted sequence (credit deduction, a
-generating state, then a real post duplicated into the library) — nothing is
+generating state, then a real post duplicated into the library). Nothing is
 computed or called over a network anywhere.
 
 ## Features
@@ -32,7 +32,7 @@ computed or called over a network anywhere.
   that exact same real post as the result, so the outcome is deterministic
   and traceable, not a fresh invention each click.
 - **Blog Library mirrors davonex.com/blog completely.** All 15 real, live
-  posts from that actual client are stored locally — real titles, excerpts,
+  posts from that actual client are stored locally: real titles, excerpts,
   dates, read times, hero images, full article bodies, and references, all
   fetched once and kept self-contained (no live request to davonex.com on
   page load or when a post is opened). Generating a post duplicates that
@@ -59,7 +59,7 @@ computed or called over a network anywhere.
 
 Plain HTML, CSS, and vanilla JavaScript. No build step, no framework, no
 backend, no network calls at runtime. `demo-data.js` holds `REAL_DAVONEX_POSTS`
-(all 15 real posts — full body HTML, references, and a local image path per
+(all 15 real posts: full body HTML, references, and a local image path per
 post), `GENERATOR_PRESETS` (derived directly from those 15 posts, one per
 post), and the rest of the fabricated tour data; `app.js` drives tab
 switching, random autofill, the scripted generator sequence, the in-page
@@ -112,5 +112,5 @@ the same place, with no ambiguity about which is which.
 
 A real client publishes more content every month; this 15-post snapshot will
 drift out of date. A live version could re-sync periodically instead of a
-static copy — skipped here to keep this demo's "no live calls" guarantee
+static copy; skipped here to keep this demo's "no live calls" guarantee
 airtight rather than adding the one exception that would break it.

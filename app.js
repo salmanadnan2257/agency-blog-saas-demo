@@ -121,7 +121,7 @@ function openReader(slug, isDemo) {
   document.getElementById("reader-article").innerHTML = `
     <div class="reader__hero"><img src="${post.image}" alt="${escapeHtml(post.title)}"></div>
     <div class="reader__body">
-      ${isDemo ? `<span class="reader__demo-flag">Demo duplicate — matches the real post below, shown here for 15 minutes</span>` : ""}
+      ${isDemo ? `<span class="reader__demo-flag">Demo duplicate: matches the real post below, shown here for 15 minutes</span>` : ""}
       <h1>${escapeHtml(post.title)}</h1>
       <div class="reader__meta">
         <span>${escapeHtml(post.by)}</span><span class="dot"></span>
@@ -179,7 +179,7 @@ function runGenerator(e) {
 
   setTimeout(() => {
     addToLibrary(post.slug);
-    status.innerHTML = `Done — <strong>${escapeHtml(post.title)}</strong> added to your Blog Library tab (removes automatically in 15 minutes).`;
+    status.innerHTML = `Done: <strong>${escapeHtml(post.title)}</strong> added to your Blog Library tab (removes automatically in 15 minutes).`;
     btn.disabled = false;
   }, 2900);
 }
@@ -211,6 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
       note.textContent = "Enter a redemption code first.";
       return;
     }
-    note.textContent = "This is a demo — no real code is validated here.";
+    note.textContent = "This is a demo: no real code is validated here.";
   });
 });
