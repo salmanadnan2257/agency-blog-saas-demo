@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agency Blog SaaS — Demo</title>
+  <meta name="description" content="A fabricated, scripted walkthrough of the Agency Blog SaaS product: AI blog generation, credits, subscriptions, and client updates. No live API calls, no real client data.">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="demo-banner">
+    <strong>Demo mode</strong> — fabricated product tour. No live API calls happen here; nothing shown is a real client's data.
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="kicker">agency-blog-saas / demo</p>
+      <h1>Agency Blog SaaS</h1>
+      <p class="lede">
+        The real system is a production Django SaaS behind digitalise.agency:
+        AI blog generation, credits and subscriptions, per-client editor roles,
+        and PDF export, serving real agency clients. Its source is private since
+        it's the agency's live product. This page is a scripted product tour of
+        the same features, with fabricated data throughout.
+      </p>
+      <div class="tabs">
+        <button class="tab is-active" data-tab="generator">AI Blog Generator</button>
+        <button class="tab" data-tab="library">Blog Library</button>
+        <button class="tab" data-tab="subscriptions">Subscriptions</button>
+        <button class="tab" data-tab="clients">Client Updates</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="panel is-active" id="panel-generator">
+      <div class="credits-banner">
+        <span>Your Credits</span>
+        <b><span class="credits-value"></span> credits</b>
+      </div>
+      <div class="card">
+        <h2>AI Blog Generator</h2>
+        <p style="color:var(--ink-soft);font-size:14px">Create a high-quality, SEO-optimized blog post. Costs 100 credits per post.</p>
+        <form id="generator-form">
+          <label for="topic-input">Topic</label>
+          <input id="topic-input" type="text" placeholder="e.g., 5 Ways to Improve Local SEO in 2026">
+          <label for="desc-input">Description</label>
+          <textarea id="desc-input" placeholder="Briefly describe the angle you want."></textarea>
+          <label for="keywords-input">Keywords</label>
+          <input id="keywords-input" type="text" placeholder="local seo, google business profile, citations">
+          <div style="margin-top:16px">
+            <button class="btn btn--primary" id="generate-btn" type="submit">Generate post</button>
+          </div>
+          <div class="status-line" id="generate-status"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-library">
+      <div class="card">
+        <h2>Blog Library</h2>
+        <div class="library-list" id="library-list"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-subscriptions">
+      <div class="card">
+        <h2>Subscription Packages</h2>
+        <div class="pricing-grid" id="pricing-grid"></div>
+        <div class="redeem-row">
+          <input id="redeem-input" type="text" placeholder="Have a redemption code? PKG1-XXXX-XXXX-XXXX">
+          <button class="btn btn--yellow" id="redeem-btn" type="button">Redeem</button>
+        </div>
+        <p id="redeem-note" style="font-size:13px;color:var(--ink-soft);margin-top:8px"></p>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-clients">
+      <div class="card">
+        <h2>Client Updates</h2>
+        <p style="font-size:14px"><strong id="client-name"></strong></p>
+        <div class="updates-list" id="updates-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      This is a companion demo for a private repository. It contains no real
+      client data and makes no live API calls; every interaction on this page is
+      pre-scripted. Built with Django 4.2, PostgreSQL 18, Docker, Gunicorn, and
+      nginx; 132/132 tests passing, 56% coverage, per the real project's README.
+    </div>
+  </footer>
+
+  <script src="demo-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
