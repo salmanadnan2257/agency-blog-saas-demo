@@ -54,8 +54,10 @@
         <h2>AI Blog Generator</h2>
         <p style="color:var(--ink-soft);font-size:14px">Create a high-quality, SEO-optimized blog post. Costs 100 credits per post.</p>
 
-        <label style="margin-top:18px">Autofill an example (optional)</label>
-        <div class="preset-row" id="preset-row"></div>
+        <div class="autofill-row">
+          <button type="button" class="btn btn--yellow" id="autofill-btn">&#127922; Autofill an example</button>
+          <span class="autofill-note" id="autofill-note">Picks one of davonex.com's 15 real posts at random and fills the form below.</span>
+        </div>
 
         <form id="generator-form">
           <label for="topic-input">Topic</label>
@@ -74,13 +76,18 @@
 
     <section class="panel" id="panel-library">
       <p style="color:var(--ink-soft);font-size:14px;max-width:680px;margin-bottom:20px">
-        By default this mirrors a real configured client's live blog (titles, excerpts, dates,
-        and read times from davonex.com/blog, copied verbatim; no image is fetched from
-        davonex.com, see each card's placeholder). Generate a post on the other tab and a
-        fabricated demo post is added here for 15 minutes, clearly marked, then automatically
-        removed.
+        This mirrors a real configured client's live blog: all 15 real posts from
+        davonex.com/blog, stored locally with their real images and full text so this
+        page stays self-contained. Click any card to read it in full. Autofill and
+        generate on the other tab, and that exact real post is duplicated here for
+        15 minutes with a "Demo" ribbon, then automatically removed.
       </p>
       <div class="library-grid" id="library-list"></div>
+    </section>
+
+    <section class="panel" id="panel-reader">
+      <button class="btn btn--ghost" type="button" id="reader-back">&larr; Back to Blog Library</button>
+      <article class="reader" id="reader-article"></article>
     </section>
 
     <section class="panel" id="panel-subscriptions">
