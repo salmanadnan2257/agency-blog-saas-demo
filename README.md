@@ -33,14 +33,25 @@ library) — nothing is computed or called over a network anywhere.
 - Client Updates for one invented, illustrative client ("Aurora Fitness Co.",
   fictional; the real product's actual client testimonials and logos are
   intentionally excluded here).
+- Styled with the real, public design tokens (primary color, font, button
+  shape, card radius and shadow) read directly off this project's own Django
+  templates' static CSS, since this SaaS *is* digitalise.agency's live site.
+  This is presentation only: the visual design language every visitor's
+  browser already renders, not the site's private server code, auth, or
+  billing logic, none of which is part of this demo.
 
 ## Architecture
 
 Plain HTML, CSS, and vanilla JavaScript. No build step, no framework, no
 backend, no network calls. `demo-data.js` holds the fabricated tour data;
 `app.js` drives tab switching and the scripted generator/export sequences;
-`styles.css` is a self-contained copy of the design tokens used across the
-rest of the portfolio.
+`styles.css` uses the real site's public color, font, radius, and shadow
+values (copied from its own static CSS, since that's just visual design
+language every visitor's browser already renders) so the demo reads as a
+genuine tour of the real product, not a generic mockup. The real site loads
+'Inter' from Google Fonts; this demo stays fully self-contained and offline,
+so it falls back to the closest system font instead of fetching that
+externally.
 
 ## Setup
 
@@ -62,6 +73,11 @@ generation sequence; the new post appears highlighted in the Blog Library tab.
 - **Making the generator flow feel real without a backend.** The three-stage
   status sequence (checking credits, generating, saving) is timed to feel like
   a real async job rather than an instant fake success.
+- **Matching the real brand without exposing the real repo.** The primary
+  color, font, and card/button shapes are the actual values from the private
+  repo's own static CSS, since those are public the moment anyone visits the
+  real site; using them here is different from linking or embedding the
+  private repo's server code, auth flow, or billing logic.
 
 ## What I learned
 
