@@ -13,10 +13,20 @@
     <strong>Demo mode</strong> — fabricated product tour. No live API calls happen here; nothing shown is a real client's data.
   </div>
 
+  <nav class="demo-nav">
+    <div class="wrap demo-nav__inner">
+      <div class="demo-nav__brand">
+        <span class="demo-nav__mark" aria-hidden="true">AB</span>
+        <span class="demo-nav__name">Agency Blog SaaS</span>
+      </div>
+      <span class="demo-nav__tag">Demo</span>
+    </div>
+  </nav>
+
   <header class="hero">
     <div class="wrap">
-      <p class="kicker">agency-blog-saas / demo</p>
-      <h1>Agency Blog SaaS</h1>
+      <p class="eyebrow">agency-blog-saas / demo</p>
+      <h1>Tour the AI blog generation product</h1>
       <p class="lede">
         The real system is a production Django SaaS behind digitalise.agency:
         AI blog generation, credits and subscriptions, per-client editor roles,
@@ -51,7 +61,7 @@
           <label for="keywords-input">Keywords</label>
           <input id="keywords-input" type="text" placeholder="local seo, google business profile, citations">
           <div style="margin-top:16px">
-            <button class="btn btn--primary" id="generate-btn" type="submit">Generate post</button>
+            <button class="btn btn--primary" id="generate-btn" type="submit">Generate post <span class="arr">&#8594;</span></button>
           </div>
           <div class="status-line" id="generate-status"></div>
         </form>
@@ -87,12 +97,20 @@
 
   </main>
 
-  <footer>
-    <div class="wrap">
-      This is a companion demo for a private repository. It contains no real
-      client data and makes no live API calls; every interaction on this page is
-      pre-scripted. Built with Django 4.2, PostgreSQL 18, Docker, Gunicorn, and
-      nginx; 132/132 tests passing, 56% coverage, per the real project's README.
+  <footer class="site-foot">
+    <div class="wrap foot-inner">
+      <div>
+        <div class="foot-brand">
+          <span class="demo-nav__mark" aria-hidden="true">AB</span>
+          <strong>Agency Blog SaaS</strong>
+        </div>
+        <p class="foot-tag">This is a companion demo for a private repository. It contains no real
+          client data and makes no live API calls; every interaction on this page is pre-scripted.</p>
+      </div>
+      <div class="foot-right">
+        <span>Built with Django 4.2, PostgreSQL 18, Docker, Gunicorn, and nginx</span><br>
+        <span>132/132 tests passing, 56% coverage, per the real project's README</span>
+      </div>
     </div>
   </footer>
 
