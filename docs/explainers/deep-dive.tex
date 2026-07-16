@@ -1,0 +1,1213 @@
+% explainer-source-hash: f4056f58dd7b4a388ee50f223c77b4315cabd8562bb0f0a0f393b8a5e9d6e423
+% explainer-source-commit: 2b8bb12994f7dc6f75fe0d99b2cff9e1de273266
+% explainer-generated: 2026-07-16
+% Regenerate with /explain-all (see WIRING.md). Do not edit this stamp by hand:
+% it is how the toolchain knows whether this document still matches the code.
+\documentclass[11pt,a4paper]{article}
+\input{preamble}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+{\Huge\bfseries\color{inkblue} Agency Blog SaaS: Demo\par}
+\vspace{0.6cm}
+{\Large\color{accent} Deep Dive\par}
+\vspace{1.2cm}
+{\large A scripted, fabricated product tour of a private production system\par}
+\vspace{2.5cm}
+\begin{minipage}{0.86\textwidth}
+\begin{honest}{Read this before anything else}
+This document describes \file{agency-blog-saas-demo}: a small static web page that
+\textbf{imitates} a product. It is not the product.
+
+The real system, \file{agency-blog-saas}, is a production Django application serving
+paying clients of a real agency. Its source is private and stays private, because it is
+the agency's live product rather than a codebase that could be scrubbed and published.
+This demo exists so that the product's screens can be clicked through by someone who will
+never be given the real repository.
+
+Almost everything the demo displays is \textbf{fabricated}: the credit balance, the client,
+the client's updates, the generation process itself. Nothing is computed. Nothing is sent
+anywhere. The one exception is the blog library, which reproduces real, already-public
+articles from a real client's public website, and this document is careful to say which is
+which every time it matters.
+\end{honest}
+\end{minipage}
+\vfill
+{\small Built from the project source as tracked in its git repository.\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{What this project is}
+
+\subsection{The one-paragraph version}
+
+\file{agency-blog-saas-demo} is a single web page, written in plain HTML, CSS and
+JavaScript, with no build step, no framework, no server of its own and no network calls at
+runtime. It presents four tabs that mirror the main screens of a private Django product:
+an AI Blog Generator, a Blog Library, Subscription Packages, and Client Updates, plus a
+fifth hidden panel that reads a full article in place. Clicking \code{Generate post} runs a
+pre-written timeline of status messages, subtracts a number from a variable, and copies a
+post that was already stored in the page into the library with a countdown on it. That is
+the whole program.
+
+\begin{keyidea}{The distinction that governs this entire document}
+There are two separate things with similar names.
+
+\textbf{The real system} (\file{agency-blog-saas}) is a production Django SaaS behind
+digitalise.agency. It has a database, user accounts, real billing, real AI generation, PDF
+export, and real clients. \textbf{You cannot see it}, and neither can a hiring panel.
+
+\textbf{This demo} (\file{agency-blog-saas-demo}) is roughly 1{,}200 lines of static files,
+of which the large majority is copied article text. It has no database, no accounts, no
+billing, no AI, and no clients. \textbf{It only knows how to draw pictures of those things.}
+
+Every claim in this document is about the demo unless it explicitly says otherwise. Where
+the demo makes a claim about the real system, this document treats that claim as a claim,
+not as a verified fact, because the code here cannot verify it.
+\end{keyidea}
+
+\subsection{Why a demo repository exists at all}
+
+A portfolio has a structural problem: the most substantial work is often the work that
+cannot be shown. An agency's live product is commercially sensitive in a way that no amount
+of secret-scrubbing fixes, because the sensitive thing is not a password in a config file,
+it is the product. Deleting the credentials from a live product's source and publishing the
+rest still publishes the product.
+
+There are three usual responses, and it is worth naming why this project chose the third.
+
+\begin{enumerate}
+\item \textbf{Publish nothing.} Honest, but the reader has only a written claim to go on.
+\item \textbf{Publish screenshots.} Better, but a screenshot cannot be clicked, and a
+      reader cannot tell a screenshot of a working product from a screenshot of a mockup.
+\item \textbf{Publish a fabricated, clearly-labelled reimplementation of the screens.}
+      The reader gets something to click. The cost is that what they are clicking is a
+      puppet, and the whole design problem becomes making sure nobody mistakes the puppet
+      for the real thing.
+\end{enumerate}
+
+This project is option three, and most of the interesting decisions in it are about
+managing the cost of that choice rather than about the code.
+
+\begin{jargon}{Static site}
+A website made of files that a server hands over exactly as they are stored: HTML, CSS,
+images, JavaScript. Nothing is generated per visitor. The opposite is a \emph{dynamic}
+site, where a program on the server (Django, for example) builds a different page for each
+request by reading a database. The real system is dynamic. This demo is static, which is
+precisely why it can pretend to be dynamic only by scripting the pretence in the browser.
+\end{jargon}
+
+\subsection{What is honestly demonstrated, and what is not}
+
+This matters enough to be a table rather than a paragraph.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}p{0.30\textwidth}p{0.30\textwidth}p{0.32\textwidth}@{}}
+\toprule
+\textbf{Product capability} & \textbf{What the demo shows} & \textbf{What that proves} \\
+\midrule
+AI blog generation &
+A button, a form, three status messages on timers, and a pre-stored post appearing. &
+That a generation screen exists and roughly what it feels like. \emph{Nothing} about
+prompting, model choice, queueing, or output quality. \\
+\addlinespace
+Credits and metering &
+A number in the corner that decreases by 100. &
+The concept. Not the ledger, not the refund-on-failure logic, not the race conditions
+that make metering hard. \\
+\addlinespace
+Subscriptions &
+Three price cards and a redemption box that always says it is a demo. &
+The tier structure and price points, which are real and public. Not payment, not
+provisioning, not renewal. \\
+\addlinespace
+Per-client editor roles &
+Nothing. There is no login and no notion of a user. &
+Nothing. This capability is named in the demo's own prose but is absent from the demo. \\
+\addlinespace
+PDF export &
+Nothing. There is no export button. &
+Nothing. Also named in the prose, also absent. \\
+\addlinespace
+Client updates &
+A three-item list for an openly invented company. &
+The screen's shape only. \\
+\addlinespace
+Published output quality &
+Fifteen genuine, full-length articles from a real client's live blog. &
+This is the one place where something real is on display. See section~\ref{sec:tiers}. \\
+\bottomrule
+\end{tabular}
+\caption{Capability by capability: the demo is a picture of a product, and two of the
+capabilities it advertises in its own hero text are not pictured at all.}
+\end{table}
+
+\begin{honest}{The demo advertises two features it does not contain}
+The page's own opening paragraph tells the visitor that the real system does ``AI blog
+generation, credits and subscriptions, per-client editor roles, and PDF export''. The first
+two have tabs. \textbf{Per-client editor roles and PDF export have no representation
+anywhere in the demo}: no login, no role switcher, no export control, no mention on any
+tab.
+
+This is not dishonest, because the sentence is explicitly describing the real system rather
+than the demo, and the very next sentence says the page is a scripted tour. But it is a
+real gap between the advertised feature list and the tour: a visitor who reads the list and
+then clicks all four tabs looking for roles and export will not find them, and will not be
+told why. Either the tour should cover them or the hero should not lead with them.
+\end{honest}
+
+\section{Running it}
+
+\begin{lstlisting}[caption={There is no setup. These are the only two ways to run it.}]
+# 1. Open the file directly.
+xdg-open index.html          # or double-click it
+
+# 2. Or serve the folder with any static server.
+python3 -m http.server 8000  # then visit http://localhost:8000
+\end{lstlisting}
+
+Both work identically, because the page never makes a request that a \code{file://} origin
+would block. There is no \code{npm install}, no compiler, no environment file and no
+secrets, and this is a deliberate property rather than an accident: see
+section~\ref{sec:selfcontained}.
+
+\file{netlify.toml} is the entire deployment configuration:
+
+\begin{lstlisting}[caption={netlify.toml, in full}]
+[build]
+  publish = "."
+\end{lstlisting}
+
+\begin{jargon}{Netlify, and what \code{publish = "."} means}
+Netlify is a hosting service that watches a git repository and serves its contents as a
+website. Most projects need a \emph{build command} first, turning source into deployable
+files. This project has no build, so the configuration says only ``publish the folder as
+it is''. Two lines of deployment configuration is a direct consequence of the
+no-build-step decision.
+\end{jargon}
+
+\section{The layout of the repository}
+
+\begin{figure}[H]
+\centering
+\begin{forest} dirtree
+[agency-blog-saas-demo
+  [index.html {\rmfamily\itshape\scriptsize\quad 137 lines: all five panels, nav, footer}]
+  [demo-data.js {\rmfamily\itshape\scriptsize\quad 375 lines, but $\approx$150\,KB: the data}]
+  [app.js {\rmfamily\itshape\scriptsize\quad 216 lines: every behaviour on the page}]
+  [styles.css {\rmfamily\itshape\scriptsize\quad 285 lines: the borrowed design system}]
+  [netlify.toml {\rmfamily\itshape\scriptsize\quad 2 lines}]
+  [favicon.svg]
+  [favicon.png {\rmfamily\itshape\scriptsize\quad fallback for browsers without SVG icons}]
+  [assets
+    [fonts
+      [space-grotesk.woff2]
+    ]
+    [posts
+      [CREDITS.md {\rmfamily\itshape\scriptsize\quad provenance of the real content}]
+      [{15 x *.webp} {\rmfamily\itshape\scriptsize\quad one hero image per real post}]
+    ]
+  ]
+  [docs
+    [explainers
+      [{deep-dive.tex, brief.tex, and their PDFs}]
+    ]
+  ]
+  [README.md]
+  [LICENSE {\rmfamily\itshape\scriptsize\quad PolyForm Strict 1.0.0}]
+]
+\end{forest}
+\caption{The whole project. Four files carry the entire program; the 2.5\,MB of weight is
+almost all images and one font.}
+\end{figure}
+
+The file count is small enough that the architecture is really just an answer to one
+question: what goes in which of the four files? The answer is a clean and conventional
+split, and it is worth stating because it is one of the things a reader can actually judge
+here.
+
+\begin{itemize}
+\item \file{index.html} holds \emph{structure only}: five \code{<section>} panels, each
+      mostly empty, waiting to be filled.
+\item \file{demo-data.js} holds \emph{data only}, and defines three global constants.
+\item \file{app.js} holds \emph{behaviour only}, and reads those constants.
+\item \file{styles.css} holds \emph{appearance only}.
+\end{itemize}
+
+\begin{honest}{The split is real but not absolute}
+Three of the panels in \file{index.html} carry inline \code{style="..."} attributes
+(\code{color:var(--ink-soft);font-size:14px} and similar) rather than classes, so a little
+appearance has leaked into the structure file. It is cosmetic and it is four attributes,
+but the separation the project otherwise keeps carefully is not perfectly kept.
+\end{honest}
+
+\section{The three tiers of truth}
+\label{sec:tiers}
+
+This is the most important idea in the project, and it is not a coding idea.
+
+The data on the page is not uniformly fake. It comes in three tiers with genuinely
+different provenance, and the design of the page is largely an attempt to keep a visitor
+from confusing them.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[node distance=6mm]
+
+\node[box, fill=warnred!10, draw=warnred, text width=4.1cm, minimum height=3.4cm,
+      anchor=north west] (t1) at (0,0)
+  {\textbf{Tier 1: fabricated}\\[3pt]
+   \scriptsize Invented for this demo.\\ Nothing behind it.\\[4pt]
+   \scriptsize $\bullet$ 1{,}200 credit balance\\
+   \scriptsize $\bullet$ ``Aurora Fitness Co.''\\
+   \scriptsize $\bullet$ its three updates\\
+   \scriptsize $\bullet$ the generation timeline};
+
+\node[box, fill=softgrey, text width=4.1cm, minimum height=3.4cm,
+      anchor=north west] (t2) at (4.7,0)
+  {\textbf{Tier 2: real and public,}\\\textbf{not client-specific}\\[3pt]
+   \scriptsize Real facts, already published.\\[4pt]
+   \scriptsize $\bullet$ the three price tiers\\
+   \scriptsize $\bullet$ the tech stack line\\
+   \scriptsize $\bullet$ the test/coverage line\\
+   \scriptsize $\bullet$ davonex.com's design tokens};
+
+\node[box, fill=okgreen!10, draw=okgreen, text width=4.1cm, minimum height=3.4cm,
+      anchor=north west] (t3) at (9.4,0)
+  {\textbf{Tier 3: real client work,}\\\textbf{already public}\\[3pt]
+   \scriptsize Genuine shipped output.\\[4pt]
+   \scriptsize $\bullet$ 15 davonex.com articles\\
+   \scriptsize $\bullet$ their hero images\\
+   \scriptsize $\bullet$ their references\\
+   \scriptsize $\bullet$ their real dates};
+
+\node[extbox, text width=4.1cm, anchor=north west] (x1) at (0,-3.8)
+  {\scriptsize Labelled by the red banner\\ at the top of every page,\\ and by naming the
+   client\\ ``(invented, illustrative)''\\ in the data itself.};
+\node[extbox, text width=4.1cm, anchor=north west] (x2) at (4.7,-3.8)
+  {\scriptsize Safe because it was\\ already public before this\\ demo existed. Reused\\
+   verbatim rather than\\ approximated.};
+\node[extbox, text width=4.1cm, anchor=north west] (x3) at (9.4,-3.8)
+  {\scriptsize Labelled by a provenance\\ note and a link back to\\ the original URL at the\\
+   foot of every article.};
+
+\draw[flow] (t1.south) -- (x1.north);
+\draw[flow] (t2.south) -- (x2.north);
+\draw[flow] (t3.south) -- (x3.north);
+
+\node[box, draw=accent, fill=white, text width=13.5cm, anchor=north west] (rule) at (0,-6.4)
+  {\textbf{The rule that ties them together:} anything fabricated is duplicated from
+   something real and stamped \code{Demo}, so the visitor is never asked to guess. A demo
+   card in the library is always a copy of a Tier-3 post, never an invention, and it always
+   carries the ribbon and the countdown.};
+\end{tikzpicture}}
+\caption{Three provenances on one page, and the labelling that keeps them apart.}
+\end{figure}
+
+\subsection{Tier 3 is the unusual choice}
+
+Most fabricated demos invent their content library too: a page of lorem-ipsum blog posts
+with plausible titles. This one does not. It ships all fifteen real, live articles from
+\file{davonex.com/blog}, an actual client, with their real titles, real publication dates,
+real read times, real hero images, real full article bodies (tables, headings, inline
+citations and all) and their real reference lists. Verified by counting them in the source:
+15 posts, 15 unique slugs, 15 unique titles, 177 reference entries in total, and roughly
+154\,KB of article HTML.
+
+The project's \file{README.md} argues that this is a \emph{stronger} honesty position than
+inventing a library, and the argument is sound: a reader can see genuine shipped work and a
+working interaction in one place, with a link back to the original on every article so any
+claim is checkable in one click.
+
+\begin{honest}{But Tier 3 comes from a different private system than the one being demoed}
+\file{assets/posts/CREDITS.md} states that davonex.com is ``an actual configured client of
+the real \file{blog-posting-pipeline} production system''. \file{blog-posting-pipeline} is a
+\emph{different} private project from \file{agency-blog-saas}; both exist in this portfolio
+and both are private.
+
+The page's own prose is looser. In the article reader and in the README, davonex.com is
+called ``an actual configured client of the real production pipeline'', without saying
+which pipeline. A visitor reading that sentence inside a demo titled ``Agency Blog SaaS''
+will very reasonably conclude that these fifteen posts were produced by Agency Blog SaaS.
+\textbf{The one file that names a system says otherwise.}
+
+This is worth resolving before an interview, because it is the kind of thing that gets
+asked. Two readings are possible and the code cannot settle it: either the two systems
+share the client and the wording is merely imprecise, or the library is showcasing another
+project's output inside this project's demo. Whichever is true, the honest framing that the
+rest of the project works so hard for is undercut by the one ambiguous noun.
+\end{honest}
+
+\subsection{The labelling machinery, concretely}
+
+Four separate mechanisms in the code exist only to keep the tiers legible:
+
+\begin{enumerate}
+\item \textbf{A permanent banner.} \file{index.html} opens with a fixed red strip:
+      \code{Demo mode: fabricated product tour. No live API calls happen here; nothing
+      shown is a real client's data.} It is the first element in the body and it never
+      goes away.
+\item \textbf{Self-labelling data.} The invented client's name is literally stored as
+      \code{"Aurora Fitness Co. (invented, illustrative client)"}. The label is part of the
+      value, so it cannot be lost by a template that forgets to render a flag.
+\item \textbf{The ribbon and countdown.} Any generated card wears a ribbon reading
+      \code{Demo}, \code{duplicate}, and \code{removes in 14:59} (joined by middle dots),
+      ticking down live.
+\item \textbf{The provenance note.} Every opened article ends with a paragraph stating the
+      content is real, published, and stored locally, followed by a link to the original
+      \file{davonex.com} URL. Verified in a real browser: the link resolves to
+      \code{https://davonex.com/blog/<slug>/} for the post that is open.
+\end{enumerate}
+
+\begin{honest}{The banner claim ``nothing shown is a real client's data'' is false}
+The banner says: \emph{nothing shown is a real client's data}. But the Blog Library is
+fifteen real posts from a real client, and the demo's own README, CREDITS and article
+provenance notes all say so proudly.
+
+The intended meaning is clearly ``no private client data'', and everything shown is
+genuinely public. But as written, the page's most prominent honesty statement contradicts
+the page's most interesting honest feature. The footer has the same problem: ``It contains
+no real client data''. A careful reader who notices this is being handed a reason to
+distrust every other label on the page, which is the exact opposite of what the banner is
+for.
+
+This is cheap to fix and worth fixing: ``no private client data; the Blog Library is a real
+client's already-public content, labelled as such'' would be both accurate and a stronger
+claim.
+\end{honest}
+
+\section{Architecture}
+
+\subsection{How the page assembles itself}
+
+There is no framework, so the load sequence is worth tracing exactly once, because
+everything else follows from it.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}
+
+\node[box, text width=2.6cm, minimum height=1.5cm] (html) at (0,0)
+  {\file{index.html}\\\scriptsize five empty\\ panels};
+\node[box, text width=3.5cm, minimum height=1.5cm] (data) at (6.4,0)
+  {\file{demo-data.js}\\[2pt]\scriptsize \code{REAL\_DAVONEX\_POSTS}\\
+   \code{GENERATOR\_PRESETS}\\ \code{DEMO}};
+\node[box, text width=2.7cm, minimum height=1.5cm] (app) at (12.6,0)
+  {\file{app.js}\\\scriptsize functions\\ + listeners};
+\node[store, text width=1.5cm] (dom) at (17.8,0) {live\\ DOM};
+
+\draw[flow] (html) -- node[lbl, above=1pt] {\code{<script>}\\ tag 1} (data);
+\draw[flow] (data) -- node[lbl, above=1pt] {\code{<script>}\\ tag 2\\ (order matters)} (app);
+\draw[flow] (app) -- node[lbl, above=1pt] {\code{DOMContentLoaded}\\ fires the\\ 4 renderers} (dom);
+
+\node[extbox, text width=4.4cm] (globals) at (6.4,-3.6)
+  {\scriptsize Both files run at top level, so\\ their \code{const} declarations land in\\
+   the same global scope. \file{app.js}\\ reads \file{demo-data.js}'s constants\\ by name,
+   with no import and no\\ module system.};
+\draw[dflow] (globals.north) -- (data.south);
+
+\node[extbox, text width=4.4cm] (renders) at (13.6,-3.6)
+  {\scriptsize \code{renderCreditsBanner()}\\ \code{renderPackages()}\\
+   \code{renderLibrary()}\\ \code{renderClientUpdates()}\\ each writes \code{.innerHTML} once.};
+\draw[dflow] (renders.north) -- (app.south);
+
+\node[box, draw=warnred, fill=warnred!8, text width=4.4cm] (net) at (0,-3.6)
+  {\textbf{No network layer exists.}\\\scriptsize There is no \code{fetch}, no
+   \code{XMLHttpRequest},\\ no WebSocket, and no external\\ URL loaded anywhere in the page.};
+\end{tikzpicture}}
+\caption{The complete architecture. Two script tags in a fixed order, three global
+constants, four render functions, one DOM.}
+\end{figure}
+
+\begin{jargon}{The DOM, and \code{innerHTML}}
+The DOM (Document Object Model) is the browser's live, in-memory tree of the page. HTML is
+the text you wrote; the DOM is the object the browser built from it and actually draws.
+JavaScript changes the page by changing the DOM.
+
+\code{element.innerHTML = "<p>hi</p>"} is the blunt instrument for that: it throws away
+everything inside \code{element} and rebuilds it by parsing a string of HTML. It is simple
+and fast to write. Its two costs matter later in this document: it destroys and recreates
+the elements every time (section~\ref{sec:leak}), and it will execute whatever markup the
+string happens to contain (section~\ref{sec:escaping}).
+\end{jargon}
+
+\begin{jargon}{Global scope, and why script order is load-bearing}
+A browser runs \code{<script>} tags in the order they appear. A \code{const} declared at
+the top level of a plain (non-module) script is visible to every script that runs after it.
+
+So \file{app.js}'s very first executable line, \code{let creditsBalance = DEMO.credits;},
+works only because \file{demo-data.js} appeared first in \file{index.html} and left
+\code{DEMO} lying in the global scope. Swap the two \code{<script>} lines and the page dies
+instantly with \code{DEMO is not defined}. This is a real coupling, invisible in either
+file, recorded only by the order of two lines in the HTML. It is completely standard for a
+page this size, and it is exactly what module systems were invented to make explicit.
+\end{jargon}
+
+\subsection{The data model}
+
+\file{demo-data.js} defines three globals and nothing else.
+
+\begin{lstlisting}[caption={The shape of one entry in REAL\_DAVONEX\_POSTS. The body\_html field is elided here; in the real file it is a single string of up to ~20 KB of article markup.}]
+const REAL_DAVONEX_POSTS = [
+  {
+    slug:      "track-ai-search-sales-e-commerce-attribution-guide-2026",
+    title:     "Track AI Search Sales: E-Commerce Attribution Guide (2026)",
+    excerpt:   "Learn how to track AI search sales for e-commerce. ...",
+    by:        "By Davonex",
+    date:      "Updated 6 Jul 2026",
+    read_time: "5 min read",
+    image:     "assets/posts/track-ai-search-sales-...-2026.webp",
+    body_html: "<p>To track real e-commerce sales from AI search, ...</p>...",
+    references: [
+      { title: "A Practical Framework for ...", url: "https://...", date: "2025-12-04" },
+      // ... 10 more
+    ]
+  },
+  // ... 14 more posts
+];
+\end{lstlisting}
+
+\begin{jargon}{Slug}
+A short, lowercase, hyphenated, URL-safe version of a title. \code{Track AI Search Sales:
+E-Commerce Attribution Guide (2026)} becomes
+\code{track-ai-search-sales-e-commerce-attribution-guide-2026}. Here the slug does double
+duty: it is the identity of a post inside the demo (every lookup is
+\code{REAL\_DAVONEX\_POSTS.find(p => p.slug === slug)}) \emph{and} it is the real path
+component on the real site, which is what lets the provenance link be built by string
+concatenation rather than stored.
+\end{jargon}
+
+The second constant is derived rather than written, and that derivation is the single most
+deliberate design decision in the codebase:
+
+\begin{lstlisting}[caption={GENERATOR\_PRESETS is computed from the posts, not authored}]
+const GENERATOR_PRESETS = REAL_DAVONEX_POSTS.map(p => ({
+  slug: p.slug,
+  topic: p.title,
+  description: p.excerpt,
+  keywords: p.title.toLowerCase().replace(/[():]/g, "")
+              .split(" ").filter(w => w.length > 3).slice(0, 6).join(", ")
+}));
+\end{lstlisting}
+
+\begin{keyidea}{Why derive the presets instead of writing them}
+A demo generator has an honesty trap in it. If ``Autofill'' writes one thing into the form
+and ``Generate'' produces something unrelated, the demo is quietly lying about the most
+basic property a generator has: that the output follows from the input.
+
+By computing each preset \emph{from} the post it will produce, the project makes the link
+structural rather than clerical. Preset $i$ carries post $i$'s slug. Autofill records that
+slug. Generate looks it up. The same input always yields the same output because they are
+the same object, and no future edit can drift them apart, because there is nothing to keep
+in sync.
+
+The README states that this mirrors the real pipeline's actual deterministic-per-brief
+behaviour. That claim is about the private system and \textbf{cannot be checked from this
+repository}; treat it as the owner's assertion, not as something this demo demonstrates.
+\end{keyidea}
+
+The third constant holds the fabricated tour data:
+
+\begin{lstlisting}[caption={DEMO, in full}]
+const DEMO = {
+  credits: 1200,
+  packages: [
+    { name: "Basic",      price: "$9.99/mo",  credits: "500 credits",   note: "..." },
+    { name: "Pro",        price: "$24.99/mo", credits: "1,500 credits", note: "...",
+      featured: true },
+    { name: "Enterprise", price: "$79.99/mo", credits: "5,000 credits", note: "..." }
+  ],
+  client: {
+    name: "Aurora Fitness Co. (invented, illustrative client)",
+    updates: [ { date: "2026-06-01", text: "Published 4 blog posts this month, ..." },
+               { date: "2026-05-15", text: "Organic traffic up 12% month over month ..." },
+               { date: "2026-05-01", text: "Completed keyword research refresh ..." } ]
+  },
+  facts: {
+    tests:    "132/132 tests passing",
+    coverage: "56% coverage",
+    stack:    "Django 4.2, PostgreSQL 18, Docker, Gunicorn, nginx"
+  }
+};
+\end{lstlisting}
+
+\begin{honest}{\code{DEMO.facts} is dead code, and its contents are duplicated by hand}
+Verified by searching the whole repository: \code{DEMO.facts} is \textbf{never read}. Not by
+\file{app.js}, not by \file{index.html}. It is defined and abandoned.
+
+Worse than merely dead: the same three facts are hard-coded as literal text in the footer of
+\file{index.html}, which prints ``Built with Django 4.2, PostgreSQL 18, Docker, Gunicorn,
+and nginx'' and ``132/132 tests passing, 56\% coverage, per the real project's README''. So
+the project has two copies of the same figures, one of which is wired to nothing. Change the
+data object and the page does not move; change the page and the data object silently lies.
+
+The fix is one line in each direction and it should be done. As it stands this is a small
+but genuine defect in a project whose entire premise is that its claims are traceable.
+\end{honest}
+
+\subsection{The claimed figures, and what could be checked}
+
+The footer's ``132/132 tests passing, 56\% coverage'' is careful in one respect: it says
+\emph{per the real project's README}, attributing the number rather than asserting it
+directly.
+
+\begin{honest}{Verified by cross-reference, not by this repository}
+These numbers are not checkable from inside this demo, which has no tests of its own and no
+access to the real system. Cross-referencing the private \file{agency-blog-saas} project's
+own README confirms that it does state 132 tests and 56\% line coverage against a 50\% gate,
+and that it records them as locally verified.
+
+So the demo is quoting its source accurately. What the demo cannot do, and what this
+document will not pretend it does, is \emph{verify} them. A reader of the demo has the
+owner's word, one step removed. That is the honest status of that footer line, and it is
+worth saying out loud in an interview before someone else asks.
+\end{honest}
+
+\section{\file{app.js}: every behaviour on the page}
+
+216 lines, no dependencies. This section covers all of it.
+
+\subsection{The state}
+
+The entire application state is five module-level variables.
+
+\begin{lstlisting}[caption={The whole of the demo's memory}]
+let creditsBalance = DEMO.credits;   // 1200, decremented by 100 per generate
+let libraryDemo = null;              // { slug, addedAt, expiresAt, tickHandle,
+                                     //   timeoutHandle } or null
+let currentPresetSlug = null;        // set by autofill, read by generate
+let readerReturnTab = "library";     // where the Back button goes
+const LIBRARY_LIFETIME_MS = 15 * 60 * 1000;   // 15 minutes
+\end{lstlisting}
+
+Note what is \emph{not} here: no array of generated posts. \code{libraryDemo} is a single
+slot, not a list. Generating twice replaces rather than appends. This is a deliberate
+constraint that keeps the library from filling up with duplicates, and it is enforced in
+\code{addToLibrary}.
+
+\subsection{The tab machine}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{
+\begin{tikzpicture}[node distance=13mm]
+\node[box] (gen) {panel-generator\\\scriptsize \emph{active at load}};
+\node[box, right=of gen] (lib) {panel-library};
+\node[box, right=of lib] (sub) {panel-subscriptions};
+\node[box, right=of sub] (cli) {panel-clients};
+\node[box, draw=warnred, fill=warnred!8, below=16mm of lib, text width=3.4cm] (read)
+  {panel-reader\\\scriptsize \textbf{no tab button exists}};
+
+\draw[flow, <->] (gen) -- (lib);
+\draw[flow, <->] (lib) -- (sub);
+\draw[flow, <->] (sub) -- (cli);
+\draw[flow, <->, bend left=20] (gen) to (sub);
+\draw[flow, <->, bend left=34] (gen) to (cli);
+
+\draw[flow] (lib.south) -- node[lbl, right] {click any\\ post card} (read.north);
+\draw[flow, bend right=20] (read.west) to node[lbl, below] {\code{reader-back} returns to\\
+  \code{readerReturnTab}} (gen.south west);
+
+\node[extbox, right=18mm of read, text width=7.4cm]
+  {\scriptsize \code{switchTab(id)} toggles the class \code{is-active} on every \code{.tab}\\
+   and every \code{.panel}. Because the reader has no button, entering\\ it leaves
+   \emph{all four} tabs looking unselected: the only way out is\\ the Back button inside the
+   panel.};
+\end{tikzpicture}}
+\caption{Five panels, four buttons. The reader is a panel that the tab bar does not know
+about.}
+\end{figure}
+
+\begin{lstlisting}[caption={The entire router}]
+function switchTab(tabId) {
+  document.querySelectorAll(".tab")
+    .forEach(t => t.classList.toggle("is-active", t.dataset.tab === tabId));
+  document.querySelectorAll(".panel")
+    .forEach(p => p.classList.toggle("is-active", p.id === `panel-${tabId}`));
+}
+\end{lstlisting}
+
+Two lines, and it is the right two lines for this problem. \code{classList.toggle(name,
+condition)} adds the class when the condition is true and removes it when false, so a single
+pass over every tab and every panel puts the whole UI into a consistent state with no
+bookkeeping.
+
+\begin{honest}{No URL, no history, no deep link}
+The tab is not in the address bar. Refreshing always returns to the generator; the browser
+Back button leaves the page entirely rather than leaving the reader; and no article can be
+linked to. For a four-tab tour this is a defensible simplification, and adding
+\code{history.pushState} would be perhaps fifteen lines. But it does mean an interviewer
+cannot be sent a link to a specific screen, which for a demo whose purpose is to be shown
+to people is a slightly awkward limitation.
+\end{honest}
+
+\subsection{Autofill}
+
+\begin{lstlisting}[caption={autofillRandom}]
+function autofillRandom() {
+  const preset = GENERATOR_PRESETS[Math.floor(Math.random() * GENERATOR_PRESETS.length)];
+  currentPresetSlug = preset.slug;
+  document.getElementById("topic-input").value = preset.topic;
+  document.getElementById("desc-input").value = preset.description;
+  document.getElementById("keywords-input").value = preset.keywords;
+  document.getElementById("autofill-note").innerHTML =
+    `Filled with a real davonex.com post: <strong>${escapeHtml(preset.topic)}</strong>. ...`;
+}
+\end{lstlisting}
+
+\code{Math.random()} returns a number in $[0, 1)$; multiplying by the length and flooring
+gives a uniformly chosen index. The chosen slug is stashed in \code{currentPresetSlug},
+which is the only channel between this function and the generator.
+
+\begin{honest}{The derived keywords are visibly poor, and they are on screen}
+The keyword derivation is a title, lowercased, stripped of only \code{(} \code{)} and
+\code{:}, split on spaces, filtered to words longer than three characters, and truncated to
+six. Running it over all fifteen real titles produces, among others:
+
+\begin{lstlisting}
+google, best, e-commerce, 2026            <- from "Google Ads vs AEO: Best E-Commerce ROI in 2026"
+what, answer, engine, optimization, e-commerce, 2026?
+chatgpt, recommend, your, e-commerce, store, 2026
+paid, e-commerce, lowering, 2026          <- from "SEO vs Paid Ads for E-Commerce: Lowering CAC in 2026"
+\end{lstlisting}
+
+Three concrete failures, all visible to any visitor who clicks Autofill:
+\begin{itemize}
+\item \textbf{The length filter deletes the subject.} ``Ads'', ``SEO'', ``AEO'', ``CAC'',
+      ``ROI'' and ``vs'' are all four characters or fewer, so the Google Ads post's keywords
+      contain neither ``ads'' nor ``AEO'', and the CAC post's contain neither ``SEO'' nor
+      ``CAC''. The keywords omit precisely the terms the article is about.
+\item \textbf{Stopwords survive.} ``what'', ``your'', ``best'' and ``guide'' are longer than
+      three characters, so they stay. No real keyword field would contain ``your''.
+\item \textbf{The punctuation strip is incomplete.} It removes \code{()} and \code{:} but
+      not \code{?}, so one preset ships the literal keyword \code{2026?}. Confirmed on
+      screen in a real browser.
+\end{itemize}
+
+This matters more than a normal cosmetic bug, because this demo's pitch is that its
+generator screen is a faithful picture of a real product. A keyword field reading
+\code{what, answer, engine, optimization, e-commerce, 2026?} is not a picture of a real
+product's keyword field; it is a picture of a naive string split. Since the presets are
+derived rather than authored, the cheapest honest fix is a small stopword list and a
+hand-written keyword line per post, which is fifteen short strings.
+\end{honest}
+
+\subsection{The scripted generation}
+
+This is the centrepiece interaction, and it is four timers.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[x=1.4cm]
+
+\draw[->, thick, draw=inkblue] (0,0) -- (13.4,0) node[right, font=\small] {time};
+\foreach \x/\t in {0/0, 2.6/700ms, 7.0/1900ms, 10.7/2900ms}
+  { \draw[draw=inkblue] (\x,-0.12) -- (\x,0.12); \node[font=\scriptsize, below=2pt] at (\x,-0.12) {\t}; }
+
+\node[box, above=6mm of {(0,0)}, anchor=south, text width=2.5cm] (s0)
+  {\scriptsize \textbf{submit}\\ \code{preventDefault()}\\ button disabled\\ slug captured};
+\node[box, above=6mm of {(2.6,0)}, anchor=south, text width=3.2cm] (s1)
+  {\scriptsize \textbf{timer 1}\\ \code{creditsBalance -= 100}\\ banner redrawn\\
+   ``Generating post...''};
+\node[box, above=6mm of {(7.0,0)}, anchor=south, text width=2.6cm] (s2)
+  {\scriptsize \textbf{timer 2}\\ ``Formatting and\\ saving to your\\ library...''};
+\node[box, above=6mm of {(10.7,0)}, anchor=south, text width=3.2cm] (s3)
+  {\scriptsize \textbf{timer 3}\\ \code{addToLibrary(slug)}\\ ``Done: <title>''\\
+   button re-enabled};
+
+\node[extbox, below=9mm of {(0,0)}, anchor=north, text width=3.1cm]
+  {\scriptsize ``Checking credit\\ balance...'' shown\\ immediately, with\\ a CSS spinner};
+\node[extbox, below=9mm of {(6.8,0)}, anchor=north, text width=7.6cm]
+  {\scriptsize All three timers are scheduled \emph{at submit}, in parallel, with absolute
+   delays. They are not chained. Nothing can fail, so there is no error path, no retry and
+   no cancel: the sequence always completes in exactly 2.9 seconds.};
+\end{tikzpicture}}
+\caption{\code{runGenerator}: a fixed 2.9-second choreography of a process that does not
+happen.}
+\end{figure}
+
+\begin{jargon}{\code{setTimeout} and \code{preventDefault}}
+\code{setTimeout(fn, ms)} asks the browser to call \code{fn} once, after at least \code{ms}
+milliseconds, and returns immediately. It does not pause anything.
+
+\code{e.preventDefault()} on a form's \code{submit} event stops the browser's built-in
+behaviour, which would be to send the form to a server and reload the page. Since there is
+no server, this one line is what makes the whole demo possible: the page stays put and
+JavaScript handles the event instead.
+\end{jargon}
+
+\begin{honest}{Generating without autofilling gives you someone else's post}
+\code{const slug = currentPresetSlug || GENERATOR\_PRESETS[0].slug;}
+
+If a visitor ignores the Autofill button, types their own topic, and hits Generate, then
+\code{currentPresetSlug} is still \code{null} and the fallback fires. Verified in a real
+browser: typing \code{My Own Unrelated Topic} and generating produces the status line
+\code{Done: Track AI Search Sales: E-Commerce Attribution Guide (2026) added to your Blog
+Library}.
+
+The form is fully editable, none of the fields are \code{required} or \code{readonly}, and
+nothing tells the visitor that their input is being discarded. So the most natural first
+interaction on the page, typing something into the topic box, silently produces an
+unrelated article and asserts it as the result. That is the demo doing exactly the thing
+the preset-derivation design was built to prevent, one branch away from all that care.
+
+The honest options are to disable Generate until Autofill has been clicked, or to make the
+inputs read-only with a note, or simply to say in the status line that the demo can only
+produce its fifteen stored posts. Any of the three costs a few lines. The current fallback
+is the one place where this demo says something untrue without labelling it.
+\end{honest}
+
+\begin{honest}{Credits go negative}
+\code{creditsBalance -= 100} has no floor and no check. The starting balance is 1{,}200, so
+the thirteenth generation takes the display to $-100$, and it keeps going. Verified in a
+browser by driving the balance down: the banner will happily render \code{-50}.
+
+In the real system this is the exact place where the interesting logic lives (refuse,
+refund on failure, race with a concurrent request). Here it is one subtraction. A visitor
+who clicks the button thirteen times sees a negative credit balance on a page that is
+supposed to be showing them how a metered product behaves. A single \code{if
+(creditsBalance < 100)} guard with an ``out of credits'' message would turn a bug into a
+demonstration of the feature.
+\end{honest}
+
+\subsection{The demo card's life cycle}
+\label{sec:leak}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.98\textwidth}{!}{
+\begin{tikzpicture}[node distance=15mm]
+\node[box, text width=3.0cm, minimum height=1.5cm] (none) at (0,0)
+  {\code{libraryDemo}\\ \code{= null}\\[2pt]\scriptsize 15 real cards};
+\node[box, text width=3.4cm, minimum height=1.5cm] (live) at (9.0,0)
+  {\code{libraryDemo = \{...\}}\\[2pt]\scriptsize 16 cards, ribbon\\ counting down};
+\node[dec, text width=2.0cm] (again) at (15.4,0) {generate\\ again?};
+
+\draw[flow] (none) -- node[lbl, above=2pt] {\code{addToLibrary(slug)}\\ sets
+  \code{expiresAt = now + 15min},\\ starts a 1s \code{setInterval},\\ arms a 15min
+  \code{setTimeout}} (live);
+\draw[flow] (live) -- (again);
+\draw[flow, bend right=32] (again.north) to node[lbl, above=1pt] {yes: old handles cleared,\\
+  slot overwritten (never appended)} (live.north);
+
+\draw[flow] (again.south) -- (15.4,-2.4) -- (0,-2.4) -- (none.south);
+\node[lbl] at (10.8,-1.9) {15 minutes elapse: \code{setTimeout} fires,\\
+  \code{libraryDemo = null}, \code{renderLibrary()}};
+
+\node[box, draw=warnred, fill=warnred!8, text width=8.6cm] (bug) at (6.4,-5.0)
+  {\textbf{The expiry path never clears the interval.}\\[3pt]
+   \scriptsize \code{timeoutHandle: setTimeout(() => \{ libraryDemo = null;
+   renderLibrary(); \}, ...)}\\[3pt]
+   \scriptsize Nulling \code{libraryDemo} discards the only reference to
+   \code{tickHandle}, so \code{clearInterval} can never be called for it again. The 1s
+   ticker runs for the life of the page.};
+\draw[dflow] (bug.north) -- (6.4,-2.4);
+\end{tikzpicture}}
+\caption{The single-slot life cycle, and the leak on the expiry edge.}
+\end{figure}
+
+\begin{lstlisting}[caption={addToLibrary, in full}]
+function addToLibrary(slug) {
+  if (libraryDemo) {                        // replacing: clean up the old one
+    clearInterval(libraryDemo.tickHandle);
+    clearTimeout(libraryDemo.timeoutHandle);
+  }
+  const addedAt = Date.now();
+  const expiresAt = addedAt + LIBRARY_LIFETIME_MS;
+  libraryDemo = {
+    slug, addedAt, expiresAt,
+    tickHandle: setInterval(renderLibrary, 1000),
+    timeoutHandle: setTimeout(() => { libraryDemo = null; renderLibrary(); },
+                              LIBRARY_LIFETIME_MS)
+  };
+  renderLibrary();
+}
+\end{lstlisting}
+
+The replace path is careful and correct: it clears both handles before overwriting the slot.
+The expiry path is not.
+
+\begin{honest}{Verified leak: the ticker outlives the card, forever}
+Driven in a real headless Chrome. A \code{MutationObserver} was attached to
+\code{\#library-list} to count rebuilds, then the expiry callback was executed exactly as
+\file{app.js} writes it.
+
+\begin{lstlisting}
+DOM rebuilds of the 16-card grid in 3s while the demo card is alive:  4
+DOM rebuilds in 3s AFTER the demo card expired:                       4   <-- still ticking
+\end{lstlisting}
+
+The interval keeps firing at 1\,Hz forever, and each fire runs \code{renderLibrary()}, which
+rebuilds the \emph{entire fifteen-card grid} via \code{innerHTML}: fifteen
+\code{<article>} elements, fifteen \code{<img>} tags, all destroyed and re-parsed, once a
+second, permanently, for a demo card that no longer exists. The handle is unreachable, so
+nothing can ever stop it short of a page reload.
+
+The fix is one line: capture the handle in a local variable, or call
+\code{clearInterval(libraryDemo.tickHandle)} inside the timeout callback before nulling the
+slot.
+
+Note the second-order cost too. Even \emph{before} expiry, this design rebuilds fifteen
+image elements every second purely to update the \code{mm:ss} in one ribbon. Updating a
+single text node instead of re-rendering the grid would be both correct and cheaper. This
+is the clearest ``I would do it differently'' answer the codebase offers, and it is worth
+having ready.
+\end{honest}
+
+\subsection{The article reader}
+
+\code{openReader(slug, isDemo)} builds an entire article as one \code{innerHTML} string:
+hero image, an optional demo flag, title, byline, the stored \code{body\_html} verbatim, a
+references list, and the provenance note with its link back to the original.
+
+One small nicety before it renders:
+
+\begin{lstlisting}
+readerReturnTab = document.querySelector(".panel.is-active")?.id.replace("panel-", "")
+                  || "library";
+\end{lstlisting}
+
+The reader remembers which panel it was opened from so Back returns there, defaulting to the
+library. Verified: Back does return to \code{panel-library}. In practice only the library
+has clickable cards, so the generality is unused, but it costs one line and it is correct.
+
+\begin{jargon}{Optional chaining, \code{?.}}
+\code{a?.b} evaluates to \code{undefined} instead of throwing if \code{a} is \code{null} or
+\code{undefined}. Here it guards the case where no panel carries \code{is-active}, which
+then falls through to the \code{|| "library"} default. It is a defensive habit; the case
+cannot actually arise, because a panel is always active.
+\end{jargon}
+
+\begin{honest}{Every inline citation link in every article is dead}
+The real articles are full of citation markers: \code{<sup class="citation"><a
+href="\#ref-1">[1]</a></sup>}. They are meant to jump to the matching entry in the
+references list.
+
+But \code{openReader} renders the references as a plain \code{<ol>} of \code{<li>} elements
+with \textbf{no \code{id} attributes}, and searching all fifteen stored bodies confirms that
+no \code{id="ref-N"} target exists anywhere in the data either. So every one of those
+anchors points at an element that does not exist.
+
+Measured in a real browser on one opened article: \textbf{21 citation links, 21 of them
+dead.} Clicking any of them does nothing at all.
+
+This is the price of copying rendered HTML out of a site and re-hosting it in a different
+template: the markup came across, the anchor targets it depended on did not. It is a
+one-line fix (\code{<li id="ref-\$\{i+1\}">} with an index from \code{map}), and it is
+worth doing precisely because these citations are the part of the demo that shows real,
+sourced work. A panel member who clicks a citation and gets nothing has just found the
+seam.
+\end{honest}
+
+\subsection{Escaping, and the one place it is skipped}
+\label{sec:escaping}
+
+\begin{lstlisting}[caption={The project's single security primitive}]
+function escapeHtml(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+\end{lstlisting}
+
+\begin{jargon}{Why escaping exists (XSS)}
+When you build HTML by pasting a string into a template, the browser cannot tell your markup
+from the pasted string's markup. If the string contains \code{<script>}, the browser runs it.
+This is cross-site scripting (XSS).
+
+Escaping neutralises the characters that start markup: \code{<} becomes \code{\&lt;}, which
+the browser draws as a less-than sign rather than treating as the start of a tag. Escaping
+\code{\&} first is essential and correctly ordered here; doing it last would double-escape
+the entities the earlier replacements just introduced.
+\end{jargon}
+
+The function is applied consistently to every title, excerpt, date, price and update text.
+Two deliberate exceptions and one apparent oversight:
+
+\begin{itemize}
+\item \code{post.body\_html} is injected raw. This is intentional and unavoidable: it
+      \emph{is} HTML, and escaping it would print the tags as text.
+\item \code{post.image} is interpolated into a \code{src} unescaped. It is a local path from
+      a static file, so nothing can reach it.
+\item \code{r.url} is interpolated into an \code{href} unescaped, in the references list.
+\end{itemize}
+
+\begin{honest}{The escaping is theatre, and it is worth knowing that}
+Every string \code{escapeHtml} touches is a hard-coded literal in \file{demo-data.js}. There
+is no user input anywhere on this page that reaches the DOM: the three form fields are read
+into \code{currentPresetSlug} logic and the redeem box is only tested for emptiness. Its
+value is never rendered.
+
+So \code{escapeHtml} defends against nothing that can happen here. The unescaped \code{href}
+is equally harmless for the same reason: an attacker would have to edit the repository to
+exploit it, at which point they can do anything anyway.
+
+This is a good habit applied to a codebase that does not need it, which is the right way
+round. But it should be described accurately: the demo is safe because it has \emph{no
+untrusted input}, not because it escapes carefully. The two are different arguments and only
+the first one is doing any work.
+\end{honest}
+
+\subsection{Wiring}
+
+\begin{lstlisting}[caption={DOMContentLoaded: the only entry point}]
+document.addEventListener("DOMContentLoaded", () => {
+  renderCreditsBanner(); renderPackages(); renderLibrary(); renderClientUpdates();
+
+  document.querySelectorAll(".tab")
+    .forEach(t => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+  document.getElementById("generator-form").addEventListener("submit", runGenerator);
+  document.getElementById("autofill-btn").addEventListener("click", autofillRandom);
+
+  document.getElementById("library-list").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-open-post]");
+    if (!card) return;
+    openReader(card.dataset.openPost, card.dataset.isDemo === "1");
+  });
+  document.getElementById("reader-back").addEventListener("click", () =>
+    switchTab(readerReturnTab));
+  // ... redeem handler
+});
+\end{lstlisting}
+
+\begin{keyidea}{Event delegation: the one non-obvious technique in the file}
+The library's cards are destroyed and rebuilt every second while a countdown runs. A
+listener attached to a card would die with the card.
+
+So no listener is attached to any card. One listener sits on the container,
+\code{\#library-list}, which is never replaced. When a click arrives, \code{e.target} is
+whatever exact element was hit (possibly the image, or the title text), and
+\code{e.target.closest("[data-open-post]")} walks \emph{up} the tree to find the nearest
+ancestor carrying that attribute, which is the card. If there is none, the click was on
+empty space and is ignored.
+
+This is called event delegation. It works because events bubble up the DOM tree, and it is
+the correct answer to the ``my listeners disappear when I re-render'' problem. The card's
+identity travels in \code{data-open-post} (the slug) and \code{data-is-demo}, read back via
+\code{dataset}, so the handler needs no closure over anything.
+\end{keyidea}
+
+\section{The self-contained guarantee}
+\label{sec:selfcontained}
+
+The demo makes a strong, testable promise, repeated in the banner, the footer, the README,
+and the first comment line of both JavaScript files: \textbf{no network calls}.
+
+\begin{keyidea}{Why this is a real design constraint and not a slogan}
+An honesty claim that depends on a remote server is not an honesty claim. If the demo
+fetched davonex.com's posts live, then: the page would break when the client's site changed
+or went down; the demo would be reporting on a live system it does not control; and ``no
+live API calls'' would be false. Every article body, every hero image and the font itself
+were therefore fetched once (dated 2026-07-07 in \file{CREDITS.md}) and committed, which is
+why the repository is 2.5\,MB for 1{,}200 lines of code.
+
+The README is explicit that this is the constraint it refused to break, and names the cost:
+the fifteen-post snapshot will drift as the real client publishes more, and re-syncing was
+skipped rather than adding ``the one exception that would break it''. That is a
+proportionate trade, honestly stated.
+\end{keyidea}
+
+\begin{keyidea}{Verified, not assumed}
+The page was loaded in a real headless Chrome from a \code{file://} origin with every
+request intercepted and logged.
+
+\textbf{Result: 0 requests to any non-local origin.} No HTTP, no fetch, no beacon, no
+analytics, no font CDN, no hotlinked images. The page also produced \textbf{zero JavaScript
+errors} across the full interaction: load, autofill, generate, open an article, go back,
+generate again, and expire the demo card.
+
+The claim is true. This is the one headline claim the demo makes that this document can
+confirm from the outside rather than take on trust.
+\end{keyidea}
+
+The font is part of that: \file{assets/fonts/space-grotesk.woff2} is committed and declared
+with a local \code{@font-face} rather than pulled from Google Fonts, which would have been a
+network call and a third-party request on every load.
+
+\section{\file{styles.css}: a borrowed design system}
+
+285 lines, opening with a comment that is itself a piece of the project's honesty
+discipline:
+
+\begin{lstlisting}[caption={The header comment of styles.css, quoted}]
+  Palette and component patterns below match the real, live public design
+  system read directly off davonex.com's own CSS (:root tokens, .card/.btn/
+  .eyebrow components), per the owner's direction to style this demo after
+  davonex.com rather than digitalise.agency's own indigo palette. Colors,
+  radii, and shadows are copied 1:1; nothing here is invented. This is public
+  visual design language (what every visitor's browser already renders), not
+  any site's private server code, auth, or billing logic, which stays out of
+  this repo entirely.
+\end{lstlisting}
+
+The tokens themselves are CSS custom properties:
+
+\begin{lstlisting}[caption={A representative slice of the :root block}]
+:root {
+  --bg: #FAFBFE;          --paper: #FFFFFF;
+  --blue: #136BEE;        --blue-deep: #0C4497;    --navy: #062757;
+  --ink: #08152B;         --ink-soft: #46597A;
+  --line: rgba(6, 39, 87, .12);
+  --r-lg: 26px;           --r-md: 16px;            --r-sm: 10px;
+  --shadow-blue: 0 18px 40px rgba(19, 107, 238, .28);
+  --wrap: 960px;
+}
+\end{lstlisting}
+
+\begin{jargon}{CSS custom properties (variables)}
+\code{--blue: \#136BEE} declares a named value on an element; \code{var(--blue)} reads it,
+and it cascades to all descendants. Declaring them on \code{:root} (the \code{<html>}
+element) makes them global. The point is that the palette lives in one block rather than
+being scattered as literal hex codes across 285 lines, so a token can be re-pointed once.
+\end{jargon}
+
+The rest of the file is unremarkable modern CSS, and readable: a fixed banner, a sticky
+blurred nav, a card with a hover lift and a top accent bar, arrow-animated buttons, a
+keyframed spinner, a grid for the library, and an article template mirroring the real site's
+post layout. There is no preprocessor and no framework, so what is in the file is what the
+browser gets.
+
+\begin{honest}{The provenance argument is stated but not sourced}
+The comment says the values were ``read directly off davonex.com's own CSS'' and copied
+1:1. That is a specific, checkable claim, and it cannot be checked from this repository:
+there is no record of which stylesheet, at what date, and the demo makes no live request
+that could confirm it. \file{CREDITS.md} carefully dates the article snapshot (2026-07-07)
+but says nothing about the CSS.
+
+The reasoning offered (that a public site's rendered visual language is not private code) is
+reasonable, and the comment is admirably specific about the owner's direction. But the
+project's own standard elsewhere is to date and source its borrowings, and here it does not.
+Adding a line to \file{CREDITS.md} would close the gap.
+\end{honest}
+
+\section{Licensing}
+
+The project ships PolyForm Strict License 1.0.0, copyright 2026 Salman Adnan. This is a
+\emph{source-available} licence, not an open-source one: it permits reading and evaluating
+the code, and forbids use, modification and redistribution.
+
+\begin{keyidea}{Why a strict licence is the right call here}
+The repository contains a real client's copyrighted article text and images, reproduced with
+permission from the owner's own agency relationship rather than under any open licence
+(\file{CREDITS.md} says so explicitly). An MIT licence on this repository would purport to
+grant strangers rights to fifteen articles that are not the licensor's to give away that
+freely. PolyForm Strict is the licence that matches what the repository actually is: a
+thing to be looked at, not a thing to be taken.
+\end{keyidea}
+
+\section{Everything that was verified, and how}
+
+The brief for this document requires that claims be run rather than assumed wherever that is
+cheap. It was cheap here. The page was driven in a real headless Chrome; the data file was
+evaluated in Node.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}p{0.46\textwidth}p{0.20\textwidth}p{0.26\textwidth}@{}}
+\toprule
+\textbf{Claim} & \textbf{Result} & \textbf{Method} \\
+\midrule
+No network calls at runtime & \textbf{True} & 0 non-local requests intercepted \\
+No JavaScript errors across the full tour & \textbf{True} & 0 pageerror, 0 console errors \\
+15 real posts, all present at load & \textbf{True} & 15 \code{.post-card} elements \\
+15 unique slugs, 15 unique titles & \textbf{True} & Set comparison in Node \\
+All 15 hero images exist on disk & \textbf{True} & \code{fs.existsSync} per post \\
+Generate adds exactly one card & \textbf{True} & 15 to 16, label \code{(16)} \\
+Credits go 1{,}200 to 1{,}100 per generate & \textbf{True} & read from the DOM \\
+Autofilled post is the generated post & \textbf{True} & titles compared, equal \\
+Countdown starts at 15 minutes & \textbf{True} & ribbon read: \code{removes in 14:59} \\
+Provenance link points at the open post & \textbf{True} & href read from the DOM \\
+Back returns to the previous panel & \textbf{True} & \code{panel-library} \\
+Article renders with tables and refs & \textbf{True} & 13 paragraphs, 1 table, 11 refs \\
+\midrule
+Citation links resolve & \textbf{False} & 21 links, 21 dead \\
+Typed topic is respected & \textbf{False} & unrelated post returned \\
+Credits have a floor & \textbf{False} & rendered $-50$ \\
+Ticker stops when the card expires & \textbf{False} & 4 rebuilds per 3s after expiry \\
+\code{DEMO.facts} is used & \textbf{False} & no reference in the repository \\
+\midrule
+132/132 tests, 56\% coverage & \textbf{Not verifiable here} & matches the private
+project's README; the demo has no tests of its own \\
+Real pipeline is deterministic per brief & \textbf{Not verifiable here} & claim about the
+private system \\
+CSS tokens copied 1:1 from davonex.com & \textbf{Not verifiable here} & no dated source
+recorded \\
+\bottomrule
+\end{tabular}
+\caption{Twelve claims confirmed, five defects confirmed, three claims that this repository
+cannot settle either way.}
+\end{table}
+
+\section{The honest summary}
+
+\subsection{What is genuinely good here}
+
+\begin{itemize}
+\item \textbf{The self-contained guarantee holds.} It is the demo's loudest claim and it
+      survives measurement, at zero non-local requests. Most demos that promise this leak a
+      font or an analytics beacon; this one does not.
+\item \textbf{Deriving the presets from the posts} is a real design decision with a real
+      argument behind it, and it is the sort of thing worth being asked about.
+\item \textbf{The three-tier labelling} is more thought than most demos get, and shipping a
+      real client's public work next to labelled fakes is a genuinely stronger position than
+      inventing a library.
+\item \textbf{Event delegation on a re-rendering grid} is the correct technique, applied for
+      the correct reason.
+\item \textbf{The code is small, clean and legible.} Four files, one job each, 216 lines of
+      behaviour, no dependencies, no build. For what this needs to do, that is right.
+\end{itemize}
+
+\subsection{What does not hold up}
+
+\begin{enumerate}
+\item \textbf{The banner's central claim is false as written} (``nothing shown is a real
+      client's data''), and it contradicts the project's own best feature.
+\item \textbf{The no-autofill path returns an unrelated post and calls it the result},
+      which is the one unlabelled untruth on the page.
+\item \textbf{Every citation link in every article is dead}: 21 of 21 on the post measured.
+\item \textbf{The interval leaks forever} and rebuilds fifteen images per second for the
+      life of the page after a card expires.
+\item \textbf{Credits go negative}, in a demo whose subject is metering.
+\item \textbf{\code{DEMO.facts} is dead}, and its figures are duplicated by hand in the
+      footer.
+\item \textbf{The keyword derivation drops the subject of the article} and keeps the
+      stopwords, on screen, in the flagship interaction.
+\item \textbf{Two advertised capabilities} (per-client editor roles, PDF export) are not in
+      the tour at all.
+\item \textbf{The davonex provenance names a different private system} in \file{CREDITS.md}
+      than the demo's prose implies.
+\end{enumerate}
+
+None of these is hard to fix. Items 1, 2, 3 and 5 are each a handful of lines, and they are
+the four that a careful visitor is most likely to trip over.
+
+\subsection{What this demo cannot demonstrate, and should not be asked to}
+
+It is worth being blunt, because the gap between the demo and the product is where an
+interview will go.
+
+This repository contains no evidence about: whether the real generation works, how good its
+output is, how prompts are constructed, how credits are actually metered or refunded, how
+subscriptions are billed or provisioned, how per-client roles are enforced, how PDF export
+is done, how any of it performs, whether it is secure, whether it scales, or whether the
+tests it cites exist. It demonstrates that its author can build a small, clean, honest
+static page and think carefully about how to label a fiction. That is a real skill and it is
+on display here. It is not the same skill as building the Django system, and this demo is
+not evidence of that one.
+
+\begin{keyidea}{The strongest defensible claim}
+``This is a puppet, I built the puppet carefully, and I labelled it as a puppet.'' Everything
+above supports that sentence. Nothing above supports any sentence about the real product's
+quality, and the demo is at its best when it does not try to.
+\end{keyidea}
+
+\end{document}
