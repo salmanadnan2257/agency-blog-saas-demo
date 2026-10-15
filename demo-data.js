@@ -1,4 +1,5 @@
-// Fabricated demo data. No live API calls, no real client data anywhere in this file.
+// Demo data. No live API calls. Everything here is fabricated except REAL_DAVONEX_POSTS
+// below, which is davonex.com's already-published blog, credited in assets/posts/CREDITS.md.
 
 // REAL_DAVONEX_POSTS: the real, live, public posts from davonex.com/blog (an
 // actual configured client of the real production pipeline), fetched and
